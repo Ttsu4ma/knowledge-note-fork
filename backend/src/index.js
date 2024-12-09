@@ -5,6 +5,7 @@ import fs from 'node:fs';
 import { PrismaClient } from '@prisma/client';
 import { hashSync, compareSync } from 'bcrypt';
 import session from 'express-session';
+import e from 'express';
 
 const openapi = yaml.parse(fs.readFileSync('./src/openapi.yaml', 'utf8'));
 const prisma = new PrismaClient();
@@ -66,6 +67,7 @@ app.post('/api/v1/register', async (req, res) => {
   await prisma.user
     .create({
       select: {
+        id: true,
         email: true,
         username: true,
       },
@@ -83,6 +85,7 @@ app.post('/api/v1/register', async (req, res) => {
     }))
     .then(record => {
       req.session.user = record;
+      console.log(req.session);
       res.cookie('user.id', record.id, { maxAge: _1h });
       res.cookie('user.username', record.username, { maxAge: _1h });
       res.json({ isSuccess: true, message: 'OK' });
@@ -91,6 +94,33 @@ app.post('/api/v1/register', async (req, res) => {
       console.error(err);
       res.status(500).json({ isSuccess: false, message: '不明なエラーが発生しました' })
     });
+});
+
+//保存処理
+app.post('/api/v1/uer-update',async (req,res) => {
+  const{username,email,password} = req.body;
+  const data ={};
+  if(username){
+    data.username = username;
+  }
+  if(email){
+    data.email = email;
+  }
+  if(password){
+    data.password = hashSync(password,10);
+  }
+  await prisma.user.update({
+    where: {
+      id: req.session.user.id
+    },
+    data: data,
+  })
+    .then(result => {
+      res.json({ isSuccess: true, message: '保存が成功しました' });
+    })
+    .catch(error => {
+      res.json({ isSuccess: false, message: '保存が失敗しました' });
+    })
 });
 
 // ログアウト処理
