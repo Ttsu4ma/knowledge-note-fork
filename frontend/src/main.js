@@ -8,6 +8,8 @@ import { bootstrap } from './core/bootstrap';
 import { mypage } from './pages/mypage';
 import { userCheck } from './utils/user-check';
 import { articlesNew } from './pages/articles/new';
+import { parse } from 'marked';
+import DOMPurify from 'dompurify';
 
 bootstrap(
   router(
@@ -25,7 +27,7 @@ bootstrap(
         const bodyClassList = document.body.classList;
         const isLoggedin = Boolean(getCookieMap().get('user.id'));
         bodyClassList.add(isLoggedin ? 'is-loggedin' : 'is-guest');
-        bodyClassList.remove(isLoggedin ? 'is-guest' : 'is-loggedin');
+        bodyClassList.remove(isLoggedin ? 'is-guest' : 'is-loggedin');        
       }
     }
   )
